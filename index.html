@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <meta
+      http-equiv="X-Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <script defer src="convert.js"></script>
+    <title>gif to Square apng for Signal stickers</title>
+  </head>
+  <body>
+    <h1>gif to square apng for Signal stickers</h1>
+      <!-- <input type="file" id="gifInput" accept=".gif" multiple /> -->
+      <button id="convertButton">Convert gifs</button>
+      <button id="inputDirButton">Choose input gifs</button>
+      <button id="outputDirButton">Choose output directory</button>
+      <br><label>Delete intermediate square gifs after conversion<input id="deleteGifsAfterCb" type="checkbox" checked title="Delete the squared gifs produced during in an intermediate step afterwards"> </label>
+      <div id="response">hi</div>
+  </body>
+</html>
