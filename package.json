@@ -14,7 +14,9 @@
   },
   "dependencies": {
     "@beenotung/gif-to-apng": "^0.2.1",
+    "@tailwindcss/cli": "^4.1.4",
     "image-size": "^2.0.2",
-    "sharp": "^0.34.1"
+    "sharp": "^0.34.1",
+    "tailwindcss": "^4.1.4"
   }
 }
