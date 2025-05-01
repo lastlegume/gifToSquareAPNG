@@ -163,6 +163,9 @@
   }
 }
 @layer utilities {
+  .shrink {
+    flex-shrink: 1;
+  }
   .bg-lime-300 {
     background-color: var(--color-lime-300);
   }
@@ -195,8 +198,11 @@ body {
   display: none;
 }
 .btn {
-  border-radius: 3px;
-  padding: 1px;
+  border-radius: 7px;
+  padding: 3px;
+}
+.narrow-number-input {
+  width: 100px;
 }
 @property --tw-font-weight {
   syntax: "*";

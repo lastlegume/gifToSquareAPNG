@@ -11,16 +11,17 @@ let inputDirButton = document.getElementById("inputDirButton");
 let outputDirButton = document.getElementById("outputDirButton");
 let deleteGifsAfterCb = document.getElementById("deleteGifsAfterCb");
 let maxSizeIn = document.getElementById("maxSize");
+let shrinkingFactorIn = document.getElementById("shrinkingFactor");
 
 
 
 outputDirButton.addEventListener("click", async function () {
     outputDir = await window.convertScript.chooseOutputDir();
     console.log(outputDir);
-    if (inputDir === outputDir) {
+    if (inputDir === outputDir && outputDir !== "") {
         response.innerText = "Input and output directories cannot be the same";
         convertButton.classList.add("hide");
-    } else if (outputDir !== "") {
+    } else if (outputDir !== "" && inputDir !== "") {
         convertButton.classList.remove("hide");
     }
 });
@@ -28,10 +29,10 @@ outputDirButton.addEventListener("click", async function () {
 inputDirButton.addEventListener("click", async function () {
     inputDir = await window.convertScript.chooseInputDir();
     console.log(inputDir);
-    if (inputDir === outputDir) {
+    if (inputDir === outputDir && outputDir !== "") {
         response.innerText = "Input and output directories cannot be the same";
         convertButton.classList.add("hide");
-    } else if (outputDir !== "") {
+    } else if (outputDir !== "" && inputDir !== "") {
         convertButton.classList.remove("hide");
     }
 });
@@ -41,8 +42,10 @@ convertButton.addEventListener("click", async function () {
 });
 
 deleteGifsAfterCb.addEventListener("change", () => window.convertScript.setDeleteGifsAfter(deleteGifsAfterCb.checked))
-maxSizeIn.addEventListener("change", () => window.convertScript.setMazSize(maxSizeIn.value))
+maxSizeIn.addEventListener("change", () => window.convertScript.setMaxSize(maxSizeIn.value*1))
+shrinkingFactorIn.addEventListener("change", () => window.convertScript.shrinkingFactor(shrinkingFactorIn.value*1))
 
 
 window.convertScript.setDeleteGifsAfter(deleteGifsAfterCb.checked);
-window.convertScript.setMazSize(maxSizeIn.value);
+window.convertScript.setMaxSize(maxSizeIn.value * 1);
+window.convertScript.shrinkingFactor(shrinkingFactorIn.value * 1)

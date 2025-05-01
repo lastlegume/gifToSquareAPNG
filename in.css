@@ -12,3 +12,7 @@ body{
     border-radius: 7px;
     padding: 3px;
 }
+
+.narrow-number-input{
+    width: 100px;
+}

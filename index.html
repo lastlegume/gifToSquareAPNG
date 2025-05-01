@@ -1,33 +1,35 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
-    <meta
-      http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
-    <script defer src="convert.js"></script>
-    <link href="./out.css" rel="stylesheet">
-    <title>gif to Square apng for Signal stickers</title>
-  </head>
-  <body>
-    <div class = "p-3">
-    <h1 class="text-3xl font-bold underline">gif to square apng for Signal stickers</h1>
-      <!-- <input type="file" id="gifInput" accept=".gif" multiple /> -->
-       <p>
-      <button class="btn hover:bg-lime-500 bg-lime-300" id="inputDirButton">Choose input gifs</button>
-      <button class="btn hover:bg-lime-500 bg-lime-300" id="outputDirButton">Choose output directory</button><br>
-      <button class="btn hover:bg-lime-500 bg-lime-300 hide" id="convertButton">Convert gifs</button>
 
-      <br><label>Delete intermediate gifs after conversion<input id="deleteGifsAfterCb" type="checkbox" checked title="Delete the squared gifs produced during in an intermediate step afterwards"> </label>
-      <br><label>Maximum size of GIF (kb): <input id="maxSize" type="number" min="100" value = 330></label>
-    </p>
+<head>
+  <meta charset="UTF-8" />
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+  <script defer src="convert.js"></script>
+  <link href="./out.css" rel="stylesheet">
+  <title>gif to Square apng for Signal stickers</title>
+</head>
+
+<body>
+  <div class="p-3">
+    <h1 class="text-3xl font-bold underline">GIF to Square APNG for Signal stickers</h1>
+    <p>
+      <button class="btn hover:bg-lime-500 bg-lime-300" id="inputDirButton">Choose input directory</button>
+      <button class="btn hover:bg-lime-500 bg-lime-300" id="outputDirButton">Choose output directory</button><br>
+      <button class="btn hover:bg-lime-500 bg-lime-300 hide" id="convertButton">Convert GIFs</button>
+
+      <br><label title="Delete the square GIFs produced during in an intermediate step afterwards">Delete intermediate
+        GIFs after conversion: <input id="deleteGifsAfterCb" type="checkbox"> </label>
+      <br><label
+        title="The program cannot tell how large the outputted APNG file will be, so limiting the size of the GIF will almost always suffice. The outputted APNG is usually much smaller than the GIF, though this may change with specific GIF files.">Maximum
+        size of GIF (kb): <input id="maxSize" type="number" min="100" value=350 class="narrow-number-input"></label>
+        <br><label
+        title="The amount which the GIF is shrinked each cycle of compression. Lower values will result in faster execution, but higher values will likely preserve detail better.">Shrinking factor: <input id="shrinkingFactor" type="number" min="0.5" max="0.995" value=0.875 class="narrow-number-input" step="0.001"></label>
+
+      </p>
     <p id="response"></p>
-    </div>
-  </body>
+  </div>
+</body>
+
 </html>

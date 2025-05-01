@@ -6,7 +6,8 @@ const path = require('node:path')
 var win = "";
 var dirs = ["", ""];
 let deleteGifsAfter = false;
-let maxSize = 330;
+let maxSize = 350;
+let shrinkingFactor = 0.95;
 
 const createWindow = () => {
   win = new BrowserWindow({
@@ -45,8 +46,9 @@ app.whenReady().then(() => {
       return filePaths[0];
   });
   ipcMain.handle('convert', function () { if (dirs[0] !== "" && dirs[1] !== "") convert(); });
-  ipcMain.on('setDeleteGifsAfter', (val) => deleteGifsAfter = val);
-  ipcMain.on('setMaxSize', (val) => maxSize = val);
+  ipcMain.on('setDeleteGifsAfter', function(e, val){ deleteGifsAfter = val;console.log(val)});
+  ipcMain.on('setMaxSize', function(e, val){ maxSize = Math.max(val,100);console.log(val)});
+  ipcMain.on('setShrinkingFactor', function(e, val){ shrinkingFactor = Math.max(Math.min(0.995,val),0.5);console.log(val)});
   
   createWindow();
 
@@ -65,6 +67,8 @@ const toApng = require("@beenotung/gif-to-apng");
 const sharp = require("sharp");
 const fs = require("fs");
 
+
+
 async function convert() {
   console.log("convert");
   let filenames = fs.readdirSync(dirs[0]);
@@ -74,10 +78,11 @@ async function convert() {
     console.log(file);
     let fSplit = file.split(".");
     if (fSplit[1]==="gif"&&!toBeDeleted.includes(fSplit[0])) {
+      let f = [];
       if (deleteGifsAfter) {
         //let dimensions = await imageSize.imageSizeFromFile(dirs[0] + file);
         //let maxDim = Math.max(dimensions.width, dimensions.height);
-        let f = (sharp(dirs[0] + file, { animated: true }));
+        f = (sharp(dirs[0] + file, { animated: true }));
         let metadata = await f.metadata();
         let maxDim = Math.max(metadata.width * 1, Math.ceil(metadata.height / metadata.pages));
         //console.log(metadata.width+" "+metadata.height+" "+metadata.pages);
@@ -89,7 +94,7 @@ async function convert() {
             fit: 'contain',
             background: { r: 0, g: 0, b: 0, alpha: 0 }
           })).gif({ loop: 0 }).toBuffer();
-          maxDim = Math.round(maxDim*7/8);
+          maxDim = Math.round(maxDim*shrinkingFactor);
           f = sharp(fileBuffer, { animated: true });
           metadata = await f.metadata();
           console.log(metadata.size);
@@ -101,19 +106,48 @@ async function convert() {
         toBeDeleted.push(i+"_original");
 
       } else {
-        let f = (sharp(dirs[0] + file, { animated: true }));
-
-        f.metadata().then(dimensions => {
-          let maxDim = Math.max(dimensions.width, dimensions.height);
-          (f.resize(maxDim, maxDim, {
+        f.push("");
+        f[i] = (sharp(dirs[0] + file, { animated: true }));
+        function convertToApng(){
+          toApng(dirs[1] + i + "_compressed.gif");
+        }
+        // function saveFile(buffer){
+          
+        //   sharp(buffer, { animated: true })
+        // }
+        function decide(metadata){
+          console.log(metadata.size+"b size "+i);
+          if(metadata.size>=maxSize*1000)
+            f[i].metadata().then((metadata)=>shrink(metadata));
+          else
+            f[i].gif({ loop: 0 }).toFile(dirs[1] + i + "_compressed.gif").then(convertToApng);//.toBuffer((buf)=>saveFile(buf));
+        }
+        function getMetadata(buffer){
+          f[i] = sharp(buffer, { animated: true });
+          console.log("getting metadata");
+          f[i].metadata().then((metadata) => decide(metadata));
+        }
+        function box(metadata){
+          let maxDim = Math.max(metadata.width, Math.ceil(metadata.height / metadata.pages));
+          console.log(maxDim + " box");
+          (f[i].resize(maxDim, maxDim, {
             fit: 'contain',
             background: { r: 0, g: 0, b: 0, alpha: 0 }
-          })).gif({ loop: 0 }).toFile(dirs[1] + i + ".gif").then(e => {
-            toApng(dirs[1] + i + ".gif");
-          });
+          })).gif({ loop: 0 }).toBuffer().then((buffer)=>getMetadata(buffer));
         }
-        );
+      function shrink(metadata){
+        let maxDim = Math.max(metadata.width, Math.ceil(metadata.height / metadata.pages));
+        console.log(maxDim + " shrink "+i);
+        (f[i].resize(Math.round(maxDim*shrinkingFactor), Math.round(maxDim*shrinkingFactor), {
+          fit: 'contain',
+          background: { r: 0, g: 0, b: 0, alpha: 0 }
+        })).gif({ loop: 0 }).toBuffer().then((buffer)=>getMetadata(buffer));
       }
+
+      console.log(f[i]);
+
+      f[i].metadata().then((m)=>box(m));
+    }
 
     }
   }

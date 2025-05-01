@@ -5,5 +5,7 @@ contextBridge.exposeInMainWorld('convertScript', {
     chooseOutputDir: ()=>ipcRenderer.invoke('chooseOutputDir'),
     convert: ()=>ipcRenderer.invoke("convert"),
     setDeleteGifsAfter: (deleteGifsAfter)=>ipcRenderer.send("setDeleteGifsAfter", deleteGifsAfter),
-    setMaxSize: (maxSize)=>ipcRenderer.send("setMaxSize", maxSize)
+    setMaxSize: (maxSize)=>ipcRenderer.send("setMaxSize", maxSize),
+    setShrinkingFactor: (shrinkingFactor)=>ipcRenderer.send("setShrinkingFactor", shrinkingFactor)
+
   })
