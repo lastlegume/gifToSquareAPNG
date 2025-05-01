@@ -144,7 +144,6 @@ async function convert() {
         })).gif({ loop: 0 }).toBuffer().then((buffer)=>getMetadata(buffer));
       }
 
-      console.log(f[i]);
 
       f[i].metadata().then((m)=>box(m));
     }

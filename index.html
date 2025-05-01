@@ -19,8 +19,8 @@
       <button class="btn hover:bg-lime-500 bg-lime-300" id="outputDirButton">Choose output directory</button><br>
       <button class="btn hover:bg-lime-500 bg-lime-300 hide" id="convertButton">Convert GIFs</button>
 
-      <br><label title="Delete the square GIFs produced during in an intermediate step afterwards">Delete intermediate
-        GIFs after conversion: <input id="deleteGifsAfterCb" type="checkbox"> </label>
+      <br><label title="Delete the square GIFs produced during in an intermediate step afterwards. Runs slower when checked.">Delete intermediate
+        GIFs after conversion: <input id="deleteGifsAfterCb" type="checkbox" checked> </label>
       <br><label
         title="The program cannot tell how large the outputted APNG file will be, so limiting the size of the GIF will almost always suffice. The outputted APNG is usually much smaller than the GIF, though this may change with specific GIF files.">Maximum
         size of GIF (kb): <input id="maxSize" type="number" min="100" value=350 class="narrow-number-input"></label>
