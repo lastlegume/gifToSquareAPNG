@@ -38,7 +38,9 @@ inputDirButton.addEventListener("click", async function () {
 });
 
 convertButton.addEventListener("click", async function () {
+    response.innerText = "Conversion in progress";
     await window.convertScript.convert();
+    response.innerText =  "Conversion complete; check output directory"
 });
 
 deleteGifsAfterCb.addEventListener("change", () => window.convertScript.setDeleteGifsAfter(deleteGifsAfterCb.checked))
