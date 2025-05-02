@@ -1,22 +1,36 @@
 {
   "name": "giftosquareapng",
   "version": "1.0.0",
-  "description": "",
+  "description": "Converts GIF files into transparent square APNG files smaller than a specified size",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron-forge start",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "author": "lastlegume",
   "license": "MIT",
   "devDependencies": {
+    "@electron-forge/cli": "^7.8.0",
+    "@electron-forge/maker-deb": "^7.8.0",
+    "@electron-forge/maker-rpm": "^7.8.0",
+    "@electron-forge/maker-squirrel": "^7.8.0",
+    "@electron-forge/maker-zip": "^7.8.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.0",
+    "@electron-forge/plugin-fuses": "^7.8.0",
+    "@electron/fuses": "^1.8.0",
+    "@electron/rebuild": "^4.0.1",
     "electron": "^35.1.2"
   },
   "dependencies": {
     "@beenotung/gif-to-apng": "^0.2.1",
     "@tailwindcss/cli": "^4.1.4",
-    "image-size": "^2.0.2",
+    "electron-squirrel-startup": "^1.0.1",
     "sharp": "^0.34.1",
     "tailwindcss": "^4.1.4"
+  },
+  "optionalDependencies": {
+    "@img/sharp-win32-x64": "^0.34.1"
   }
 }
