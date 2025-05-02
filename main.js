@@ -48,7 +48,7 @@ app.whenReady().then(() => {
   ipcMain.handle('convert', function () { if (dirs[0] !== "" && dirs[1] !== "") convert(); });
   ipcMain.on('setDeleteGifsAfter', function(e, val){ deleteGifsAfter = val;console.log(val)});
   ipcMain.on('setMaxSize', function(e, val){ maxSize = Math.max(val,100);console.log(val)});
-  ipcMain.on('setShrinkingFactor', function(e, val){ shrinkingFactor = Math.max(Math.min(0.995,val),0.5);console.log(val)});
+  ipcMain.on('setShrinkingFactor', function(e, val){ shrinkingFactor = Math.max(Math.min(0.995,val),0.5);console.log(shrinkingFactor)});
   
   createWindow();
 

@@ -44,7 +44,7 @@ convertButton.addEventListener("click", async function () {
 
 deleteGifsAfterCb.addEventListener("change", () => window.convertScript.setDeleteGifsAfter(deleteGifsAfterCb.checked))
 maxSizeIn.addEventListener("change", () => window.convertScript.setMaxSize(maxSizeIn.value*1))
-shrinkingFactorIn.addEventListener("change", () => window.convertScript.shrinkingFactor(shrinkingFactorIn.value*1))
+shrinkingFactorIn.addEventListener("change", () => window.convertScript.setShrinkingFactor(shrinkingFactorIn.value*1))
 
 
 window.convertScript.setDeleteGifsAfter(deleteGifsAfterCb.checked);
