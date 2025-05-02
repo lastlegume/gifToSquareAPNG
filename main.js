@@ -5,7 +5,8 @@ const path = require('node:path')
 //const { dialog } = require('electron');
 var win = "";
 var dirs = ["", ""];
-let deleteGifsAfter = false;
+//name is an artifact from when beenotung gif2apng wrapper was used
+let keepCompressedGifs = false;
 let maxSize = 350;
 let shrinkingFactor = 0.95;
 
@@ -46,10 +47,10 @@ app.whenReady().then(() => {
       return filePaths[0];
   });
   ipcMain.handle('convert', function () { if (dirs[0] !== "" && dirs[1] !== "") convert(); });
-  ipcMain.on('setDeleteGifsAfter', function(e, val){ deleteGifsAfter = val;console.log(val)});
-  ipcMain.on('setMaxSize', function(e, val){ maxSize = Math.max(val,100);console.log(val)});
-  ipcMain.on('setShrinkingFactor', function(e, val){ shrinkingFactor = Math.max(Math.min(0.995,val),0.5);console.log(shrinkingFactor)});
-  
+  ipcMain.on('setkeepCompressedGifs', function (e, val) { keepCompressedGifs = val; console.log(val) });
+  ipcMain.on('setMaxSize', function (e, val) { maxSize = Math.max(val, 100); console.log(val) });
+  ipcMain.on('setShrinkingFactor', function (e, val) { shrinkingFactor = Math.max(Math.min(0.995, val), 0.5); console.log(shrinkingFactor) });
+
   createWindow();
 
   app.on('activate', () => {
@@ -62,10 +63,11 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-
-const toApng = require("@beenotung/gif-to-apng");
+//works before being packaged, but packaging with Electron Forge causes this module to throw an error and fail converting every GIF.
+//const toApng = require("@beenotung/gif-to-apng");
 const sharp = require("sharp");
 const fs = require("fs");
+const apng = require("sharp-apng");
 
 
 
@@ -74,92 +76,119 @@ async function convert() {
   let filenames = fs.readdirSync(dirs[0]);
   let toBeDeleted = [];
   for (let i = 0; i < filenames.length; i++) {
-    let file = filenames[i];
-    console.log(file);
-    let fSplit = file.split(".");
-    if (fSplit[1]==="gif"&&!toBeDeleted.includes(fSplit[0])) {
-      let f = [];
-      if (deleteGifsAfter) {
-        //let dimensions = await imageSize.imageSizeFromFile(dirs[0] + file);
-        //let maxDim = Math.max(dimensions.width, dimensions.height);
-        f = (sharp(dirs[0] + file, { animated: true }));
-        let metadata = await f.metadata();
-        let maxDim = Math.max(metadata.width * 1, Math.ceil(metadata.height / metadata.pages));
-        //console.log(metadata.width+" "+metadata.height+" "+metadata.pages);
+    try {
+      let file = filenames[i];
+      console.log(file);
+      let fSplit = file.split(".");
+      if (fSplit[1] === "gif" && !toBeDeleted.includes(fSplit[0])) {
 
-        let fileBuffer;
-        await f.gif({ loop: 0 }).toFile(dirs[1] + i +"_original" + ".gif");
-        do {
-          fileBuffer = await (f.resize(maxDim, maxDim, {
-            fit: 'contain',
-            background: { r: 0, g: 0, b: 0, alpha: 0 }
-          })).gif({ loop: 0 }).toBuffer();
-          maxDim = Math.round(maxDim*shrinkingFactor);
-          f = sharp(fileBuffer, { animated: true });
-          metadata = await f.metadata();
-          console.log(metadata.size);
-        } while(metadata.size>=maxSize*1000)
-        
-        await f.gif({ loop: 0 }).toFile(dirs[1] + i + "_compressed.gif");
-        await toApng(dirs[1] + i + "_compressed.gif");
-        toBeDeleted.push(i+"_compressed");
-        toBeDeleted.push(i+"_original");
 
-      } else {
-        f.push("");
-        f[i] = (sharp(dirs[0] + file, { animated: true }));
-        function convertToApng(){
-          toApng(dirs[1] + i + "_compressed.gif");
-        }
-        // function saveFile(buffer){
-          
-        //   sharp(buffer, { animated: true })
-        // }
-        function decide(metadata){
-          console.log(metadata.size+"b size "+i);
-          if(metadata.size>=maxSize*1000)
-            f[i].metadata().then((metadata)=>shrink(metadata));
+        let f = (sharp(dirs[0] + file, { animated: true }));
+
+        function decide(metadata) {
+          console.log(metadata.size + "b size " + i);
+          if (metadata.size >= maxSize * 1000)
+            f.metadata().then((metadata) => shrink(metadata));
           else
-            f[i].gif({ loop: 0 }).toFile(dirs[1] + i + "_compressed.gif").then(convertToApng);//.toBuffer((buf)=>saveFile(buf));
+            apng.sharpToApng(
+              f, dirs[1] + i + "_compressed.png"
+            );
+          f.gif({ loop: 0 }).toFile(dirs[1] + i + "_compressed.gif");  //.then(convertToApng);//.toBuffer((buf)=>saveFile(buf));
         }
-        function getMetadata(buffer){
-          f[i] = sharp(buffer, { animated: true });
-          console.log("getting metadata");
-          f[i].metadata().then((metadata) => decide(metadata));
+        function getMetadata(buffer) {
+          f = sharp(buffer, { animated: true });
+          console.log("getting metadata " + f.length);
+          f.metadata().then((metadata) => decide(metadata));
         }
-        function box(metadata){
+        function box(metadata) {
           let maxDim = Math.max(metadata.width, Math.ceil(metadata.height / metadata.pages));
           console.log(maxDim + " box");
-          (f[i].resize(maxDim, maxDim, {
+          (f.resize(maxDim, maxDim, {
             fit: 'contain',
             background: { r: 0, g: 0, b: 0, alpha: 0 }
-          })).gif({ loop: 0 }).toBuffer().then((buffer)=>getMetadata(buffer));
+          })).gif({ loop: 0 }).toBuffer().then((buffer) => getMetadata(buffer));
         }
-      function shrink(metadata){
-        let maxDim = Math.max(metadata.width, Math.ceil(metadata.height / metadata.pages));
-        console.log(maxDim + " shrink "+i);
-        (f[i].resize(Math.round(maxDim*shrinkingFactor), Math.round(maxDim*shrinkingFactor), {
-          fit: 'contain',
-          background: { r: 0, g: 0, b: 0, alpha: 0 }
-        })).gif({ loop: 0 }).toBuffer().then((buffer)=>getMetadata(buffer));
+        function shrink(metadata) {
+          let maxDim = Math.max(metadata.width, Math.ceil(metadata.height / metadata.pages));
+          console.log(maxDim + " shrink " + i);
+          (f.resize(Math.round(maxDim * shrinkingFactor), Math.round(maxDim * shrinkingFactor), {
+            fit: 'contain',
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
+          })).gif({ loop: 0 }).toBuffer().then((buffer) => getMetadata(buffer));
+        }
+
+
+        f.metadata().then((m) => box(m));
+
       }
 
-
-      f[i].metadata().then((m)=>box(m));
-    }
-
+    } catch (error) {
+      console.log(error);
     }
   }
-  if (deleteGifsAfter) {
-    filenames = fs.readdirSync(dirs[1]);
-    for (let i = 0; i < filenames.length; i++) {
-      let split = filenames[i].split(".");
-      if (split[1] === "gif" && toBeDeleted.includes(""+split[0]))
-        fs.unlink(dirs[1] + filenames[i], (err) => {
-          if (err) console.log('error with ' + filenames[i]);
-        });
 
-    }
-  }
-  console.log("done")
+  console.log("done");
+  return "done";
 }
+
+
+// function convertToApng() {
+//   toApng(dirs[1] + i + "_compressed.gif");
+// }
+// function saveFile(buffer){
+
+//   sharp(buffer, { animated: true })
+// }
+
+
+//synchronous version (no longer necessary)
+// if (keepCompressedGifs) {
+//   //let dimensions = await imageSize.imageSizeFromFile(dirs[0] + file);
+//   //let maxDim = Math.max(dimensions.width, dimensions.height);
+//   f = (sharp(dirs[0] + file, { animated: true }));
+//   let metadata = await f.metadata();
+//   let maxDim = Math.max(metadata.width * 1, Math.ceil(metadata.height / metadata.pages));
+//   //console.log(metadata.width+" "+metadata.height+" "+metadata.pages);
+
+//   let fileBuffer;
+//   let count = 0;
+//   do {
+//     fileBuffer = await (f.resize(maxDim, maxDim, {
+//       fit: 'contain',
+//       background: { r: 0, g: 0, b: 0, alpha: 0 }
+//     })).gif({ loop: 0 }).toBuffer();
+//     maxDim = Math.round(maxDim * shrinkingFactor);
+//     f = sharp(fileBuffer, { animated: true });
+//     if(count==0)
+//       await f.gif({ loop: 0 }).toFile(dirs[1] + i + "_original" + ".gif");
+//     metadata = await f.metadata();
+//     console.log(metadata.size);
+//     count++;
+//   } while (metadata.size >= maxSize * 1000)
+
+//   await f.gif({ loop: 0 }).toFile(dirs[1] + i + "_compressed.gif");
+//   await apng.sharpToApng(
+//     f, dirs[1] + i + "_compressed.png"
+//   );
+//   //await toApng(dirs[1] + i + "_compressed.gif");
+//   toBeDeleted.push(i + "_compressed.gif");
+//   toBeDeleted.push(i + "_original.gif");
+
+// } else {
+//f.push("");
+
+
+//   if (keepCompressedGifs) {
+//     filenames = fs.readdirSync(dirs[1]);
+//     // console.log(toBeDeleted);
+//     // console.log(filenames);
+//     for (let i = 0; i < filenames.length; i++) {
+// //      let split = filenames[i].split(".");
+//      // if (split[1] === "gif" && toBeDeleted.includes("" + split[0]))
+//      if(toBeDeleted.includes("" + filenames[i]))
+//         fs.unlink(dirs[1] + filenames[i], (err) => {
+//           if (err) console.log('error with ' + filenames[i]);
+//         });
+
+//     }
+//   }

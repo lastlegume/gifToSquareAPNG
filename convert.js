@@ -9,7 +9,7 @@ response.innerText = "Welcome. Choose an input and output directory to continue"
 let convertButton = document.getElementById("convertButton");
 let inputDirButton = document.getElementById("inputDirButton");
 let outputDirButton = document.getElementById("outputDirButton");
-let deleteGifsAfterCb = document.getElementById("deleteGifsAfterCb");
+let keepCompressedGifsCb = document.getElementById("keepCompressedGifsCb");
 let maxSizeIn = document.getElementById("maxSize");
 let shrinkingFactorIn = document.getElementById("shrinkingFactor");
 
@@ -38,15 +38,16 @@ inputDirButton.addEventListener("click", async function () {
 });
 
 convertButton.addEventListener("click", async function () {
-    response.innerText = "Conversion in progress";
+    response.innerText = "Conversion in progress... check output directory";
     await window.convertScript.convert();
+
 });
 
-deleteGifsAfterCb.addEventListener("change", () => window.convertScript.setDeleteGifsAfter(deleteGifsAfterCb.checked))
+keepCompressedGifsCb.addEventListener("change", () => window.convertScript.setkeepCompressedGifs(keepCompressedGifsCb.checked))
 maxSizeIn.addEventListener("change", () => window.convertScript.setMaxSize(maxSizeIn.value*1))
 shrinkingFactorIn.addEventListener("change", () => window.convertScript.setShrinkingFactor(shrinkingFactorIn.value*1))
 
 
-window.convertScript.setDeleteGifsAfter(deleteGifsAfterCb.checked);
+window.convertScript.setkeepCompressedGifs(keepCompressedGifsCb.checked);
 window.convertScript.setMaxSize(maxSizeIn.value * 1);
 window.convertScript.setShrinkingFactor(shrinkingFactorIn.value * 1)
