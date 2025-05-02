@@ -74,15 +74,12 @@ const apng = require("sharp-apng");
 async function convert() {
   console.log("convert");
   let filenames = fs.readdirSync(dirs[0]);
-  let toBeDeleted = [];
   for (let i = 0; i < filenames.length; i++) {
     try {
       let file = filenames[i];
       console.log(file);
       let fSplit = file.split(".");
-      if (fSplit[1] === "gif" && !toBeDeleted.includes(fSplit[0])) {
-
-
+      if (fSplit[1] === "gif") {
         let f = (sharp(dirs[0] + file, { animated: true }));
 
         function decide(metadata) {
@@ -91,13 +88,13 @@ async function convert() {
             f.metadata().then((metadata) => shrink(metadata));
           else
             apng.sharpToApng(
-              f, dirs[1] + i + "_compressed.png"
+              f, dirs[1] + fSplit[0] + "_compressed.png"
             );
-          f.gif({ loop: 0 }).toFile(dirs[1] + i + "_compressed.gif");  //.then(convertToApng);//.toBuffer((buf)=>saveFile(buf));
+          f.gif({ loop: 0 }).toFile(dirs[1] + fSplit[0] + "_compressed.gif");  //.then(convertToApng);//.toBuffer((buf)=>saveFile(buf));
         }
         function getMetadata(buffer) {
           f = sharp(buffer, { animated: true });
-          console.log("getting metadata " + f.length);
+          console.log("getting metadata "+i);
           f.metadata().then((metadata) => decide(metadata));
         }
         function box(metadata) {
