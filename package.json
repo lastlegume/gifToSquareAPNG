@@ -1,6 +1,6 @@
 {
   "name": "giftosquareapng",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Converts GIF files into transparent square APNG files smaller than a specified size",
   "main": "main.js",
   "scripts": {
