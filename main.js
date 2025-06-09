@@ -7,12 +7,13 @@ var win = "";
 var dirs = ["", ""];
 //name is an artifact from when beenotung gif2apng wrapper was used
 let keepCompressedGifs = false;
+let keepUncompressedApngs = false;
 let maxSize = 350;
 let shrinkingFactor = 0.95;
 
 const createWindow = () => {
   win = new BrowserWindow({
-    width: 400,
+    width: 450,
     height: 400,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -48,6 +49,7 @@ app.whenReady().then(() => {
   });
   ipcMain.handle('convert', function () { if (dirs[0] !== "" && dirs[1] !== "") convert(); });
   ipcMain.on('setkeepCompressedGifs', function (e, val) { keepCompressedGifs = val; console.log(val) });
+  ipcMain.on('setkeepUncompressedApngs', function (e, val) { keepUncompressedApngs = val; console.log(val) });
   ipcMain.on('setMaxSize', function (e, val) { maxSize = Math.max(val, 100); console.log(val) });
   ipcMain.on('setShrinkingFactor', function (e, val) { shrinkingFactor = Math.max(Math.min(0.995, val), 0.5); console.log(shrinkingFactor) });
 
@@ -70,53 +72,71 @@ const fs = require("fs");
 const apng = require("sharp-apng");
 
 
+// conversion functions
 
 async function convert() {
   console.log("convert");
+  if (keepCompressedGifs && !fs.existsSync(dirs[1] + "gifs"))
+    fs.mkdirSync(dirs[1] + "gifs");
+  if (keepUncompressedApngs && !fs.existsSync(dirs[1] + "uncompressedAPNGs"))
+    fs.mkdirSync(dirs[1] + "uncompressedAPNGs");
+  // else if(!fs.existsSync(dirs[1] + "temp_gifToApng"))
+  //   fs.mkdirSync(dirs[1] + "temp_gifToApng");
   let filenames = fs.readdirSync(dirs[0]);
   for (let i = 0; i < filenames.length; i++) {
     try {
       let file = filenames[i];
       console.log(file);
       let fSplit = file.split(".");
+      let f;
+
+      function decide(metadata) {
+        console.log(Math.ceil(metadata.size / 1000) + "kb size for " + fSplit[0]);
+        if (metadata.size >= maxSize * 1000 * ((fSplit[1]==="png")?(0.75):(1.0)))
+          f.metadata().then((metadata) => shrink(metadata));
+        else {
+          apng.sharpToApng(
+            f, dirs[1] + fSplit[0] + "_compressed.png"
+          );
+          if (keepCompressedGifs)
+            f.gif({ loop: 0 }).toFile(dirs[1] + "gifs/" + fSplit[0] + "_compressed.gif");  //.then(convertToApng);//.toBuffer((buf)=>saveFile(buf));
+        }
+      }
+      function getMetadata(buffer) {
+        f = sharp(buffer, { animated: true });
+        console.log("getting metadata for " + fSplit[0]);
+        f.metadata().then((metadata) => decide(metadata));
+      }
+      function box(metadata) {
+        let maxDim = Math.max(metadata.width, Math.ceil(metadata.height / metadata.pages));
+        console.log(maxDim + "px box");
+        (f.resize(maxDim, maxDim, {
+          fit: 'contain',
+          background: { r: 0, g: 0, b: 0, alpha: 0 }
+        })).gif({ loop: 0 }).toFormat('gif').toBuffer().then((buffer) => getMetadata(buffer));
+      }
+      function shrink(metadata) {
+        let maxDim = Math.max(metadata.width, Math.ceil(metadata.height / metadata.pages));
+        console.log(maxDim + "px shrink for " + fSplit[0]);
+        (f.resize(Math.round(maxDim * shrinkingFactor), Math.round(maxDim * shrinkingFactor), {
+          fit: 'contain',
+          background: { r: 0, g: 0, b: 0, alpha: 0 }
+        })).gif({ loop: 0 }).toFormat('gif').toBuffer().then((buffer) => getMetadata(buffer));
+      }
+
       if (fSplit[1] === "gif") {
-        let f = (sharp(dirs[0] + file, { animated: true }));
-
-        function decide(metadata) {
-          console.log(metadata.size + "b size " + i);
-          if (metadata.size >= maxSize * 1000)
-            f.metadata().then((metadata) => shrink(metadata));
-          else
-            apng.sharpToApng(
-              f, dirs[1] + fSplit[0] + "_compressed.png"
-            );
-          f.gif({ loop: 0 }).toFile(dirs[1] + fSplit[0] + "_compressed.gif");  //.then(convertToApng);//.toBuffer((buf)=>saveFile(buf));
-        }
-        function getMetadata(buffer) {
-          f = sharp(buffer, { animated: true });
-          console.log("getting metadata "+i);
-          f.metadata().then((metadata) => decide(metadata));
-        }
-        function box(metadata) {
-          let maxDim = Math.max(metadata.width, Math.ceil(metadata.height / metadata.pages));
-          console.log(maxDim + " box");
-          (f.resize(maxDim, maxDim, {
-            fit: 'contain',
-            background: { r: 0, g: 0, b: 0, alpha: 0 }
-          })).gif({ loop: 0 }).toBuffer().then((buffer) => getMetadata(buffer));
-        }
-        function shrink(metadata) {
-          let maxDim = Math.max(metadata.width, Math.ceil(metadata.height / metadata.pages));
-          console.log(maxDim + " shrink " + i);
-          (f.resize(Math.round(maxDim * shrinkingFactor), Math.round(maxDim * shrinkingFactor), {
-            fit: 'contain',
-            background: { r: 0, g: 0, b: 0, alpha: 0 }
-          })).gif({ loop: 0 }).toBuffer().then((buffer) => getMetadata(buffer));
-        }
-
-
+        f = (sharp(dirs[0] + file, { animated: true, transparent: true }));
         f.metadata().then((m) => box(m));
 
+        if (keepUncompressedApngs) {
+          let path = dirs[1] + "uncompressedAPNGs/" + fSplit[0] + ".png";
+          apng.sharpToApng((sharp(dirs[0] + file, { animated: true, transparent: true })), path);
+        }
+      } else if (fSplit[1] === "png") {
+        apng.sharpFromApng(dirs[0] + file, { animated: true, transparent: true }).then(function (img) {
+          f = img;
+          f.metadata().then((m) => box(m));
+        });
       }
 
     } catch (error) {
@@ -125,6 +145,8 @@ async function convert() {
   }
 
   console.log("done");
+  // if(!keepUncompressedApngs)
+     //setTimeout(function(){console.log("probably done")}, 30000+filenames.length*500);
   return "done";
 }
 

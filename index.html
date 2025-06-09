@@ -19,11 +19,13 @@
       <button class="btn hover:bg-lime-500 bg-lime-300" id="outputDirButton">Choose output directory</button><br>
       <button class="btn hover:bg-lime-500 bg-lime-300 hide" id="convertButton">Convert GIFs</button>
 
-      <br><label title="Save the compressed square GIFs produced during in an intermediate step.">Save intermediate
+      <br><label title="Save the uncompressed square APNGs.">Save uncompressed
+        APNGs after conversion: <input id="keepUncompressedApngsCb" type="checkbox"> </label>
+      <br><label title="Save the compressed square GIFs.">Save compressed
         GIFs after conversion: <input id="keepCompressedGifsCb" type="checkbox"> </label>
       <br><label
-        title="The program cannot tell how large the outputted APNG file will be, so limiting the size of the GIF will almost always suffice. The outputted APNG is usually much smaller than the GIF, though this may change with specific GIF files.">Maximum
-        size of GIF (kb): <input id="maxSize" type="number" min="100" value=350 class="narrow-number-input border border-solid"></label>
+        title="The program cannot tell how large the outputted APNG file will be, so limiting the size of the GIF will usually suffice. The outputted APNG is usually smaller than the GIF, though this may change with specific GIF files. As a result, inputted files may rarely be larger than this size depending on the original file.">Maximum
+        size of GIF (kb): <input id="maxSize" type="number" min="100" value=300 step=10 class="narrow-number-input border border-solid"></label>
         <br><label
         title="The amount which the GIF is shrinked each cycle of compression. Lower values will result in faster execution, but higher values will likely preserve detail better.">Shrinking factor: <input id="shrinkingFactor" type="number" min="0.5" max="0.995" value=0.875 class="narrow-number-input border border-solid" step="0.001"></label>
 

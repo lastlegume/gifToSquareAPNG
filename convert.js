@@ -10,6 +10,7 @@ let convertButton = document.getElementById("convertButton");
 let inputDirButton = document.getElementById("inputDirButton");
 let outputDirButton = document.getElementById("outputDirButton");
 let keepCompressedGifsCb = document.getElementById("keepCompressedGifsCb");
+let keepUncompressedApngsCb = document.getElementById("keepUncompressedApngsCb");
 let maxSizeIn = document.getElementById("maxSize");
 let shrinkingFactorIn = document.getElementById("shrinkingFactor");
 
@@ -40,14 +41,16 @@ inputDirButton.addEventListener("click", async function () {
 convertButton.addEventListener("click", async function () {
     response.innerText = "Conversion in progress... check output directory";
     await window.convertScript.convert();
+    setTimeout(function(){response.innerText = "Conversion most likely complete - check output directory";}, 30000);
 
 });
 
+keepUncompressedApngsCb.addEventListener("change", () => window.convertScript.setKeepUncompressedApngs(keepUncompressedApngsCb.checked))
 keepCompressedGifsCb.addEventListener("change", () => window.convertScript.setkeepCompressedGifs(keepCompressedGifsCb.checked))
 maxSizeIn.addEventListener("change", () => window.convertScript.setMaxSize(maxSizeIn.value*1))
 shrinkingFactorIn.addEventListener("change", () => window.convertScript.setShrinkingFactor(shrinkingFactorIn.value*1))
 
-
+window.convertScript.setKeepUncompressedApngs(keepUncompressedApngsCb.checked)
 window.convertScript.setkeepCompressedGifs(keepCompressedGifsCb.checked);
 window.convertScript.setMaxSize(maxSizeIn.value * 1);
 window.convertScript.setShrinkingFactor(shrinkingFactorIn.value * 1)
